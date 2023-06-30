@@ -1,7 +1,7 @@
 // db.js
 import { MongoClient } from "mongodb";
 
-const uri = process.env.URI_CONNECTION || "mongodb://localhost:27017/"
+const uri = /* process.env.URI_CONNECTION || */ "mongodb://localhost:27017/"
   //"mongodb+srv://emilioan999:V1zo6nV2BRY5D7Yk@apivademecum.o9m6fgm.mongodb.net/?retryWrites=true&w=majority"; // Actualiza con la URI de tu base de datos
 const client = new MongoClient(uri);
 

@@ -7,8 +7,27 @@ export const createFolder = (ruc) => {
     const folderPath = join(__dirname, '../', folderName);
     if (!existsSync(folderPath)) {
       mkdirSync(folderPath);
-      const productFolderPath = join(folderPath, 'products');
-      const presentationsFolderPath = join(folderPath, 'presentations');
+      const gitignorePath = join(__dirname, '../../','.gitignore')
+      if (fs.existsSync()) {
+        // Lee el contenido actual del archivo .gitignore
+        const currentContent = fs.readFileSync(gitignorePath, 'utf8');
+      
+        // Verifica si las carpetas ya están en el .gitignore
+        const foldersToAdd = foldersToIgnore.filter(folder => !currentContent.includes(folderPath));
+      
+        // Si hay carpetas para agregar, las agrega al contenido del archivo .gitignore
+        if (foldersToAdd.length > 0) {
+          const updatedContent = currentContent + '\n' + foldersToAdd.join('\n');
+          fs.writeFileSync(gitignorePath, updatedContent, 'utf8');
+          console.log('Carpetas agregadas al archivo .gitignore');
+        } else {
+          console.log('Las carpetas ya están presentes en el archivo .gitignore');
+        }
+      } else {
+        console.log('El archivo .gitignore no existe');
+      }
+      const productFolderPath = join(folderPath, 'producto');
+      const presentationsFolderPath = join(folderPath, 'presentacion');
       mkdirSync(productFolderPath);
       mkdirSync(presentationsFolderPath);
       console.log("Carpeta creada exitosamente");

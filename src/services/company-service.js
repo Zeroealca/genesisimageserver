@@ -24,9 +24,9 @@ const companyService = {
       throw error;
     }
   },
-  getCompanyByRUC: (company) => {
+  getCompanyByRUC:(ruc) => {
     try {
-      const query = { ruc: company };
+      const query = { ruc };
       const result = companiesCollection.find(query).toArray();
       return result;
     } catch (error) {
@@ -36,7 +36,7 @@ const companyService = {
   },
   getAllCompanies: () => {
     try {
-      const result = companiesCollection.find().toArray();
+      const result = companiesCollection.find({}).toArray();
       return result;
     } catch (error) {
       console.log(error);
