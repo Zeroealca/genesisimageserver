@@ -1,10 +1,9 @@
 // app.js o index.js
-import express from "express";
+require("dotenv").config();
 import { createServer } from "http";
 import app from "./app";
-require("dotenv").config();
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 2638;
 
 // Inicia el servidor
 const server = createServer(app);

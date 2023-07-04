@@ -1,5 +1,6 @@
 import companyService from "../services/company-service";
 import { createFolder } from "../utils/folders";
+import { join } from "path";
 
 const companyController = {
   register: async (req, res) => {
@@ -17,7 +18,8 @@ const companyController = {
       }
       const result = await companyService.createCompany(data);
       if (result.insertedId) {
-        const response = createFolder(ruc);
+        const folderPath = join(__dirname, '../../public', ruc);
+        const response = createFolder(folderPath);
         return res
           .status(200)
           .json({ status: true, msg: "success", data, response });

@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { ObjectId } from "mongodb";
 import client from "../database/db"; // Importa el cliente de MongoDB
 

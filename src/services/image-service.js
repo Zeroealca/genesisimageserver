@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { ObjectId } from "mongodb";
 import client from "../database/db"; // Importa el cliente de MongoDB
 
@@ -56,6 +57,26 @@ const imageService = {
       throw error;
     }
   },
+  getAllImagesByCompany: (company) => {
+    try {
+      const query = { company: company };
+      const result = imagesCollection.find(query).toArray();
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  getManyByIds: (ids) => {
+    try {
+      const query = { _id: { $in: ids.map((id)=>new ObjectId(id)) } };
+      const result = imagesCollection.find(query).toArray();
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
   updateImage: async (id, password, rol) => {
     try {
       const query = { _id: new ObjectId(id) };
@@ -87,6 +108,16 @@ const imageService = {
       throw error;
     }
   },
+  deleteImage: async (id) => {
+    try {
+      const query = { _id: new ObjectId(id) };
+      const result = await imagesCollection.deleteOne(query);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 };
 
 export default imageService;

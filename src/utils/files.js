@@ -2,6 +2,7 @@ import { unlinkSync } from 'fs';
 import multer, {diskStorage} from 'multer';
 import sharp from 'sharp';
 import { join } from 'path';
+import { createFolder } from './folders';
 
 const storage = diskStorage({
   destination: (req, file, cb) => {
@@ -28,28 +29,42 @@ export const upload_file = multer({
   },
 });
 
-export const eliminarMetadatos = (req, res, next) =>{
+export const eliminarMetadatos = (req, res, next) => {
   if (!req.files) {
     return next();
   }
-  const {ruc, reference} = req.body;
+  const { ruc, reference, product } = req.body;
 
-  for (const file of req.files){
-  const imagePath = join(__dirname,'../../',file.path); // Ruta de la imagen subida
-  const outputPath = join(__dirname,'../',`${ruc}/${reference ?? ''}/${file.filename}`); // Ruta de salida deseada
-  console.log({outputPath, root:__dirname})
+  const promises = req.files.map((file) => {
+    const imagePath = join(__dirname, '../../', file.path); // Ruta de la imagen subida
+    if(reference){
+      const parentPath = join(__dirname, '../../public', `${ruc}/${reference ?? ''}`); // Ruta de la carpeta padre de la referencia
+      createFolder(parentPath);
+      const folderPath = join(__dirname, '../../public', `${ruc}/${reference ?? ''}/${product}`); // Ruta de la carpeta padre de salida
+      createFolder(folderPath);
+    }
+    const outputPath = join(__dirname, '../../public', `${ruc}/${reference ?? ''}/${product}/${file.filename}`); // Ruta de salida deseada
+    return sharp(imagePath)
+      .jpeg({ quality: 80 })
+      .withMetadata(false)
+      .toFile(outputPath)
+      .then(() => {
+        file.path = outputPath; // Actualiza la ruta del archivo en req.file
+        console.log('Imagen sin metadatos guardada en:', outputPath);
+        unlinkSync(imagePath); // Elimina la imagen original
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  });
 
-  sharp(imagePath)
-    .withMetadata(false)
-        .toFile(outputPath, (err, info) => {
-          if (err) {
-            console.error(err);
-          } else {
-            file.path = outputPath; // Actualiza la ruta del archivo en req.file
-            console.log('Imagen sin metadatos guardada en:', outputPath);
-          }
-          unlinkSync(imagePath); // Elimina la imagen original
-          
-        });}
-        next();
-}
+  Promise.all(promises)
+    .then(() => {
+      next();
+    })
+    .catch((error) => {
+      console.error(error);
+      next();
+    });
+};
+

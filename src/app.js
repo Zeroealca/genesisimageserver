@@ -1,5 +1,6 @@
 import express from "express";
 // import { json } from "body-parser";
+import {join} from 'path';
 import cors from "cors";
 import morgan from "morgan";
 import imageRoutes from "./routes/image";
@@ -8,7 +9,8 @@ import companyRoutes from "./routes/company";
 const app = express();
 
 app.use(express.json());
-
+const publicPath = join(__dirname, '../public');
+app.use(express.static(publicPath));
 const whiteList = ["http://localhost:3000", "http://192.168.11.221:3000"];
 
 app.use(
@@ -31,10 +33,7 @@ app.use(
 );
 app.use("/company", companyRoutes);
 app.use("/image", imageRoutes);
-// app.use("/medicine", medicineRoutes);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
-// Establecer la clave interna
-const clave_interna = "leonardo";
 export default app;
