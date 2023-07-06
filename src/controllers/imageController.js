@@ -2,7 +2,9 @@ require("dotenv").config();
 import companyService from "../services/company-service";
 import imageService from "../services/image-service";
 import { unlink } from "fs";
-import {join } from 'path'
+import {join } from 'path';
+import { createFolder } from "../utils/folders";
+import { eliminarMetadatos } from "../utils/files";
 
 const public_IP = process.env.PUBLIC_URL || "http://194.140.198.23";
 const port = process.env.PORT || "2638"
@@ -34,45 +36,42 @@ const imageController = {
   },
   upload: async (req, res) => {
     try{
-      const {files} = req;
+      // const {files} = req;
       const {ruc, reference} = req.body;
+      // const aux = await eliminarMetadatos(req,res);
+      // console.log(aux)
       const companyE = await companyService.getCompanyByRUC(ruc);
       if (!companyE.length) {
-        if(files.length){
-          for (const file of files){
-            unlink(file.path, (err) => {
-              if (err) {
-                console.error(err)
-                return
-              }
-            })
-          }
+        const created = await companyService.createCompany({ruc})
+        if (created.insertedId) {
+          const folderPath = join(__dirname, '../../public', ruc);
+          createFolder(folderPath);
         }
-        res
-          .status(404)
-          .json({ status: false, msg: "No existe una empresa con ese nombre" });
-        return;
       }
       const resultUpload = []
-      for (const file of files){
-        const {filename} = file;
+      if(!req.files){
+        console.log(req.files)
+        throw new Error("Error en los archivos");
+      }
+      for (const file of req.files){
+        const {name,path} = file;
         const data = {
-          name: filename,
+          name: name,
           company: ruc,
           reference: reference,
-          path: file.path,
+          path: path,
         }
         const result = await imageService.createImage(data);
         if (!result.insertedId) {
           throw new Error("Error al crear la imagen");
         }
-        resultUpload.push({url:join(`${public_IP}:${port}`,file.path.split('public')[1]).replaceAll('\\', '/'), name: filename, id: result.insertedId});
+        resultUpload.push({url:join(`${public_IP}:${port}`,path.split('public')[1]).replaceAll('\\', '/'), name: name, id: result.insertedId});
       }
       return res
         .status(200)
         .json({ status: true, msg: "success", data: resultUpload });
     } catch (error) {
-      if(req.files.length){
+      /* if(req.files.length){
         for (const file of req.files){
           unlink(file.path, (err) => {
             if (err) {
@@ -81,20 +80,23 @@ const imageController = {
             }
           })
         }
-      }
+      } */
       console.log(error);
       res.status(500).json({ status: false, msg: error.message });
     }
   },
   delete: async (req, res) => {
     try {
-      const { imageId, ruc, ref } = req.query;
+      const { imageId } = req.params;
+      const exist = await imageService.getImageById(imageId)
+      if(!exist.length){
+        throw new Error("No existe la imagen")
+      }
       const result = await imageService.deleteImage(imageId);
       if (!result.deletedCount) {
         throw new Error("Error al eliminar la imagen");
       }
-      const imagePath = `./src/${ruc}/${ref ?? ''}/${imageId}`;
-      unlink(imagePath, (err) => {
+      unlink(exist[0].path, (err) => {
         if (err) {
           console.error(err)
           return
@@ -108,9 +110,8 @@ const imageController = {
   },
   deleteMany: async (req,res)=>{
     try {
-      const {images} = req.query;
+      const {images} = req.params;
       const result = await imageService.getManyByIds(JSON.parse(images));
-      console.log(result)
       if (!result.length) {
         throw new Error("No se encontraron imagenes");
       }
@@ -121,6 +122,19 @@ const imageController = {
             return
           }
         })
+      }
+      await imageService.deleteManyImagesByIds(JSON.parse(images));
+      res.status(200).json({ status: true, msg: "success" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ status: false, msg: error.message });
+    }
+  },
+  truncate: async (req, res) => {
+    try {
+      const result = await imageService.truncate();
+      if (!result.deletedCount) {
+        throw new Error("Error al eliminar las imagenes");
       }
       res.status(200).json({ status: true, msg: "success" });
     } catch (error) {

@@ -5,10 +5,13 @@ import cors from "cors";
 import morgan from "morgan";
 import imageRoutes from "./routes/image";
 import companyRoutes from "./routes/company";
+import multer from "multer";
 // import medicineRoutes from "./routes/medicine";
 const app = express();
+const upload = multer();
 
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
+app.use(upload.none());
 const publicPath = join(__dirname, '../public');
 app.use(express.static(publicPath));
 const whiteList = ["http://localhost:3000", "http://192.168.11.221:3000"];

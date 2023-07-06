@@ -2,63 +2,128 @@ require("dotenv").config();
 import { ObjectId } from "mongodb";
 import client from "../database/db"; // Importa el cliente de MongoDB
 
-const companiesCollection = client.db(process.env.DATABASE_NAME || "GenesisImages")
-  .collection("Company");
+const imagesCollection = client.db(process.env.DATABASE_NAME || "GenesisImages")
+  .collection("Images");
 
-const companyService = {
-  createCompany: (company) => {
+const imageService = {
+  createImage: (image) => {
     try {
-      const result = companiesCollection.insertOne(company);
+      const result = imagesCollection.insertOne(image);
+      // await companiesCollection.insertOne(company);
       return result;
     } catch (error) {
       console.log(error);
       throw error;
     }
   },
-  getCompany: (company) => {
+  getImageById: async (id) => {
     try {
-      const query = { _id: new ObjectId(company) };
-      const result = companiesCollection.find(query).toArray();
+      const query = { _id: new ObjectId(id) };
+      const result = await imagesCollection.find(query).toArray();
       return result;
     } catch (error) {
       console.log(error);
       throw error;
     }
   },
-  getCompanyByRUC:(ruc) => {
+  getImagesByIds: (ids) => {
     try {
-      const query = { ruc };
-      const result = companiesCollection.find(query).toArray();
+      const query = { _id: { $in: ids } };
+      const result = imagesCollection.find(query).toArray();
       return result;
     } catch (error) {
       console.log(error);
       throw error;
     }
   },
-  getAllCompanies: () => {
+  getAllImages: () => {
     try {
-      const result = companiesCollection.find({}).toArray();
+      const result = imagesCollection.find({}).toArray();
       return result;
     } catch (error) {
       console.log(error);
       throw error;
     }
   },
-  updateCompany: (id, ruc) => {
+  getAllImagesByCompany: (company) => {
+    try {
+      const query = { company: company };
+      const result = imagesCollection.find(query).toArray();
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  getManyByIds: (ids) => {
+    try {
+      const query = { _id: { $in: ids.map((id)=>new ObjectId(id)) } };
+      const result = imagesCollection.find(query).toArray();
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  updateImage: async (oldcompany, newcompany) => {
+    try {
+      const query = { company: oldcompany };
+      const update = {
+        $set: {
+          company: newcompany,
+        },
+      };
+      const result = await imagesCollection.updateOne(query, update);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  changePassword: async (id, password) => {
     try {
       const query = { _id: new ObjectId(id) };
       const update = {
         $set: {
-          ruc,
+          password: password,
         },
       };
-      const result = companiesCollection.updateOne(query, update);
+      const result = await imagesCollection.updateOne(query, update);
       return result;
     } catch (error) {
       console.log(error);
       throw error;
     }
   },
+  deleteImage: async (id) => {
+    try {
+      const query = { _id: new ObjectId(id) };
+      const result = await imagesCollection.deleteOne(query);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  deleteManyImagesByIds: async (ids) => {
+    try {
+      const query = { _id: { $in: ids.map((id)=>new ObjectId(id)) } };
+      const result = await imagesCollection.deleteMany(query);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  truncate: async () => {
+    try {
+      const result = await imagesCollection.deleteMany({});
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 };
 
-export default companyService;
+export default imageService;

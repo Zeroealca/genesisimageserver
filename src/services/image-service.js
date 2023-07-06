@@ -16,22 +16,10 @@ const imageService = {
       throw error;
     }
   },
-  getImage: (image) => {
-    try {
-      const query = {
-        $and: [{ image: image.image }, { password: image.password }],
-      };
-      const result = imagesCollection.find(query).toArray();
-      return result;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  },
-  getImageById: (id) => {
+  getImageById: async (id) => {
     try {
       const query = { _id: new ObjectId(id) };
-      const result = imagesCollection.find(query).toArray();
+      const result = await imagesCollection.find(query).toArray();
       return result;
     } catch (error) {
       console.log(error);
@@ -77,13 +65,12 @@ const imageService = {
       throw error;
     }
   },
-  updateImage: async (id, password, rol) => {
+  updateImage: async (oldcompany, newcompany) => {
     try {
-      const query = { _id: new ObjectId(id) };
+      const query = { company: oldcompany };
       const update = {
         $set: {
-          rol,
-          password,
+          company: newcompany,
         },
       };
       const result = await imagesCollection.updateOne(query, update);
@@ -112,6 +99,25 @@ const imageService = {
     try {
       const query = { _id: new ObjectId(id) };
       const result = await imagesCollection.deleteOne(query);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  deleteManyImagesByIds: async (ids) => {
+    try {
+      const query = { _id: { $in: ids.map((id)=>new ObjectId(id)) } };
+      const result = await imagesCollection.deleteMany(query);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  truncate: async () => {
+    try {
+      const result = await imagesCollection.deleteMany({});
       return result;
     } catch (error) {
       console.log(error);
